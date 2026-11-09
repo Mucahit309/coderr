@@ -1,0 +1,28 @@
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Database (never upload to GitHub)
+db.sqlite3
+*.sqlite3
+
+# Environment variables
+.env
+
+# Media uploads
+media/
+
+# Tests & coverage
+.coverage
+htmlcov/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
