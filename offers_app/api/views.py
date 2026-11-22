@@ -2,14 +2,18 @@
 
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter, SearchFilter
-from rest_framework.generics import ListCreateAPIView
+from rest_framework.generics import ListCreateAPIView, RetrieveAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from .filters import OfferFilter
 from .pagination import OfferPagination
 from .permissions import IsBusinessUser
 from .queries import annotated_offers
-from .serializers import OfferListSerializer, OfferSerializer
+from .serializers import (
+    OfferListSerializer,
+    OfferRetrieveSerializer,
+    OfferSerializer,
+)
 
 
 class OfferListCreateView(ListCreateAPIView):
@@ -41,3 +45,14 @@ class OfferListCreateView(ListCreateAPIView):
     def perform_create(self, serializer):
         """Save the offer with the logged in user as creator."""
         serializer.save(user=self.request.user)
+
+
+class OfferDetailView(RetrieveAPIView):
+    """Returns a single offer."""
+
+    serializer_class = OfferRetrieveSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        """Return all offers with min price and delivery time."""
+        return annotated_offers()

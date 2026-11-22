@@ -100,3 +100,35 @@ class OfferSerializer(serializers.ModelSerializer):
             [OfferDetail(offer=offer, **detail) for detail in details]
         )
         return offer
+
+
+class OfferDetailAbsoluteLinkSerializer(OfferDetailLinkSerializer):
+    """Id and absolute link of an offer detail."""
+
+    def get_url(self, obj):
+        """Return the absolute url of the offer detail."""
+        path = f"/api/offerdetails/{obj.id}/"
+        return self.context["request"].build_absolute_uri(path)
+
+
+class OfferRetrieveSerializer(serializers.ModelSerializer):
+    """Single offer with min price and min delivery time."""
+
+    details = OfferDetailAbsoluteLinkSerializer(many=True, read_only=True)
+    min_price = serializers.IntegerField(read_only=True)
+    min_delivery_time = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Offer
+        fields = [
+            "id",
+            "user",
+            "title",
+            "image",
+            "description",
+            "created_at",
+            "updated_at",
+            "details",
+            "min_price",
+            "min_delivery_time",
+        ]
