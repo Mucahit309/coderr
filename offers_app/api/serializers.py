@@ -73,7 +73,7 @@ class OfferDetailSerializer(serializers.ModelSerializer):
 
 
 class OfferSerializer(serializers.ModelSerializer):
-    """Creates offers together with their three details."""
+    """Creates and updates offers together with their details."""
 
     details = OfferDetailSerializer(many=True)
 
@@ -82,12 +82,27 @@ class OfferSerializer(serializers.ModelSerializer):
         fields = ["id", "title", "image", "description", "details"]
 
     def validate_details(self, value):
+        """Validate the details when creating or updating an offer."""
+        if self.instance is None:
+            return self.check_new_details(value)
+        return self.check_changed_details(value)
+
+    def check_new_details(self, value):
         """Ensure there is exactly one detail of each offer type."""
         types = sorted(detail["offer_type"] for detail in value)
         if types != ["basic", "premium", "standard"]:
             raise serializers.ValidationError(
                 "An offer needs exactly one basic, standard and "
                 "premium detail."
+            )
+        return value
+
+    def check_changed_details(self, value):
+        """Ensure each changed detail names a unique offer type."""
+        types = [detail.get("offer_type") for detail in value]
+        if None in types or len(set(types)) != len(types):
+            raise serializers.ValidationError(
+                "Each detail needs a unique offer_type."
             )
         return value
 
@@ -100,6 +115,22 @@ class OfferSerializer(serializers.ModelSerializer):
             [OfferDetail(offer=offer, **detail) for detail in details]
         )
         return offer
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        """Update the offer and the given details."""
+        details = validated_data.pop("details", [])
+        instance = super().update(instance, validated_data)
+        for data in details:
+            self.update_detail(instance, data)
+        return instance
+
+    def update_detail(self, offer, data):
+        """Update one detail, identified by its offer type."""
+        detail = offer.details.get(offer_type=data["offer_type"])
+        for field, value in data.items():
+            setattr(detail, field, value)
+        detail.save()
 
 
 class OfferDetailAbsoluteLinkSerializer(OfferDetailLinkSerializer):

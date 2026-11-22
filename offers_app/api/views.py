@@ -2,12 +2,15 @@
 
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter, SearchFilter
-from rest_framework.generics import ListCreateAPIView, RetrieveAPIView
+from rest_framework.generics import (
+    ListCreateAPIView,
+    RetrieveUpdateAPIView,
+)
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from .filters import OfferFilter
 from .pagination import OfferPagination
-from .permissions import IsBusinessUser
+from .permissions import IsBusinessUser, IsOfferOwner
 from .queries import annotated_offers
 from .serializers import (
     OfferListSerializer,
@@ -47,11 +50,17 @@ class OfferListCreateView(ListCreateAPIView):
         serializer.save(user=self.request.user)
 
 
-class OfferDetailView(RetrieveAPIView):
-    """Returns a single offer."""
+class OfferDetailView(RetrieveUpdateAPIView):
+    """Returns a single offer or lets its creator update it."""
 
-    serializer_class = OfferRetrieveSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsOfferOwner]
+    http_method_names = ["get", "patch", "head", "options"]
+
+    def get_serializer_class(self):
+        """Use the read format for GET, the write format otherwise."""
+        if self.request.method == "GET":
+            return OfferRetrieveSerializer
+        return OfferSerializer
 
     def get_queryset(self):
         """Return all offers with min price and delivery time."""
