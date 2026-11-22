@@ -40,3 +40,29 @@ def create_offer(
             offer_type=offer_type,
         )
     return offer
+
+
+def detail_payload(offer_type, price=100, days=5):
+    """Return the request data of one offer detail."""
+    return {
+        "title": f"{offer_type.title()} Design",
+        "revisions": 2,
+        "delivery_time_in_days": days,
+        "price": price,
+        "features": ["Logo Design", "Visitenkarte"],
+        "offer_type": offer_type,
+    }
+
+
+def offer_payload():
+    """Return a valid request body to create an offer."""
+    return {
+        "title": "Grafikdesign-Paket",
+        "image": None,
+        "description": "Ein umfassendes Grafikdesign-Paket.",
+        "details": [
+            detail_payload("basic", 100, 5),
+            detail_payload("standard", 200, 7),
+            detail_payload("premium", 500, 10),
+        ],
+    }

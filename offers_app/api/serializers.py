@@ -1,5 +1,6 @@
 """Serializers for the offer endpoints."""
 
+from django.db import transaction
 from rest_framework import serializers
 
 from offers_app.models import Offer, OfferDetail
@@ -51,3 +52,51 @@ class OfferListSerializer(serializers.ModelSerializer):
             "last_name": profile.last_name,
             "username": obj.user.username,
         }
+
+
+class OfferDetailSerializer(serializers.ModelSerializer):
+    """Full data of an offer detail."""
+
+    features = serializers.ListField(child=serializers.CharField())
+
+    class Meta:
+        model = OfferDetail
+        fields = [
+            "id",
+            "title",
+            "revisions",
+            "delivery_time_in_days",
+            "price",
+            "features",
+            "offer_type",
+        ]
+
+
+class OfferSerializer(serializers.ModelSerializer):
+    """Creates offers together with their three details."""
+
+    details = OfferDetailSerializer(many=True)
+
+    class Meta:
+        model = Offer
+        fields = ["id", "title", "image", "description", "details"]
+
+    def validate_details(self, value):
+        """Ensure there is exactly one detail of each offer type."""
+        types = sorted(detail["offer_type"] for detail in value)
+        if types != ["basic", "premium", "standard"]:
+            raise serializers.ValidationError(
+                "An offer needs exactly one basic, standard and "
+                "premium detail."
+            )
+        return value
+
+    @transaction.atomic
+    def create(self, validated_data):
+        """Create the offer and its details."""
+        details = validated_data.pop("details")
+        offer = Offer.objects.create(**validated_data)
+        OfferDetail.objects.bulk_create(
+            [OfferDetail(offer=offer, **detail) for detail in details]
+        )
+        return offer
