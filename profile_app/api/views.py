@@ -6,7 +6,11 @@ from rest_framework.permissions import IsAuthenticated
 from profile_app.models import UserProfile
 
 from .permissions import IsProfileOwner
-from .serializers import ProfileListSerializer, ProfileSerializer
+from .serializers import (
+    CustomerProfileListSerializer,
+    ProfileListSerializer,
+    ProfileSerializer,
+)
 
 
 class ProfileDetailView(RetrieveUpdateAPIView):
@@ -30,4 +34,17 @@ class BusinessProfileListView(ListAPIView):
         """Return only profiles of business users."""
         return UserProfile.objects.select_related("user").filter(
             type=UserProfile.BUSINESS
+        )
+
+
+class CustomerProfileListView(ListAPIView):
+    """Lists all customer profiles."""
+
+    serializer_class = CustomerProfileListSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        """Return only profiles of customer users."""
+        return UserProfile.objects.select_related("user").filter(
+            type=UserProfile.CUSTOMER
         )

@@ -57,3 +57,26 @@ class ProfileSerializer(ProfileListSerializer):
             instance.user.email = user_data["email"]
             instance.user.save(update_fields=["email"])
         return super().update(instance, validated_data)
+
+
+class CustomerProfileListSerializer(serializers.ModelSerializer):
+    """Reduced profile data of customers, used for lists."""
+
+    user = serializers.PrimaryKeyRelatedField(read_only=True)
+    username = serializers.CharField(source="user.username", read_only=True)
+    uploaded_at = serializers.DateTimeField(
+        source="created_at", read_only=True
+    )
+
+    class Meta:
+        model = UserProfile
+        fields = [
+            "user",
+            "username",
+            "first_name",
+            "last_name",
+            "file",
+            "uploaded_at",
+            "type",
+        ]
+        read_only_fields = ["type"]
