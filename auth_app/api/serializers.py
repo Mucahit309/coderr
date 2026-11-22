@@ -4,7 +4,7 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from auth_app.models import UserProfile
+from profile_app.models import UserProfile
 
 
 class RegistrationSerializer(serializers.ModelSerializer):

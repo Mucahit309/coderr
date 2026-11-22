@@ -5,8 +5,6 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from auth_app.models import UserProfile
-
 
 class RegistrationTests(APITestCase):
     """Tests for POST /api/registration/."""
@@ -84,12 +82,3 @@ class LoginTests(APITestCase):
     def test_login_missing_data(self):
         response = self.client.post(self.url, {}, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-
-class UserProfileModelTests(APITestCase):
-    """Tests for the UserProfile model."""
-
-    def test_str(self):
-        user = User.objects.create_user("max", "max@mail.de", "pw12345")
-        profile = UserProfile.objects.create(user=user, type="business")
-        self.assertEqual(str(profile), "max (business)")
