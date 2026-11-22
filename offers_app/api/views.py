@@ -4,15 +4,19 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.generics import (
     ListCreateAPIView,
+    RetrieveAPIView,
     RetrieveUpdateDestroyAPIView,
 )
 from rest_framework.permissions import AllowAny, IsAuthenticated
+
+from offers_app.models import OfferDetail
 
 from .filters import OfferFilter
 from .pagination import OfferPagination
 from .permissions import IsBusinessUser, IsOfferOwner
 from .queries import annotated_offers
 from .serializers import (
+    OfferDetailSerializer,
     OfferListSerializer,
     OfferRetrieveSerializer,
     OfferSerializer,
@@ -65,3 +69,11 @@ class OfferDetailView(RetrieveUpdateDestroyAPIView):
     def get_queryset(self):
         """Return all offers with min price and delivery time."""
         return annotated_offers()
+
+
+class SingleOfferDetailView(RetrieveAPIView):
+    """Returns a single offer detail."""
+
+    queryset = OfferDetail.objects.all()
+    serializer_class = OfferDetailSerializer
+    permission_classes = [IsAuthenticated]
