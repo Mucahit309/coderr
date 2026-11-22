@@ -4,7 +4,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.generics import (
     ListCreateAPIView,
-    RetrieveUpdateAPIView,
+    RetrieveUpdateDestroyAPIView,
 )
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
@@ -50,11 +50,11 @@ class OfferListCreateView(ListCreateAPIView):
         serializer.save(user=self.request.user)
 
 
-class OfferDetailView(RetrieveUpdateAPIView):
-    """Returns a single offer or lets its creator update it."""
+class OfferDetailView(RetrieveUpdateDestroyAPIView):
+    """Returns, updates or deletes a single offer."""
 
     permission_classes = [IsAuthenticated, IsOfferOwner]
-    http_method_names = ["get", "patch", "head", "options"]
+    http_method_names = ["get", "patch", "delete", "head", "options"]
 
     def get_serializer_class(self):
         """Use the read format for GET, the write format otherwise."""
