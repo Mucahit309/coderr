@@ -1,0 +1,9 @@
+"""URL routes of the offers_app."""
+
+from django.urls import path
+
+from .views import OfferListView
+
+urlpatterns = [
+    path("offers/", OfferListView.as_view(), name="offer-list"),
+]
