@@ -1,10 +1,15 @@
 """Views for the order endpoints."""
 
+from django.contrib.auth.models import User
 from django.db.models import Q
+from django.shortcuts import get_object_or_404
 from rest_framework.generics import ListCreateAPIView, UpdateAPIView
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from orders_app.models import Order
+from profile_app.models import UserProfile
 
 from .permissions import IsCustomerUser, IsOrderBusinessUser
 from .serializers import (
@@ -44,3 +49,28 @@ class OrderDetailView(UpdateAPIView):
     serializer_class = OrderStatusSerializer
     permission_classes = [IsAuthenticated, IsOrderBusinessUser]
     http_method_names = ["patch", "options"]
+
+
+class BusinessOrderCountView(APIView):
+    """Base view counting the orders of a business user by status."""
+
+    permission_classes = [IsAuthenticated]
+    order_status = None
+    response_key = None
+
+    def get(self, request, business_user_id):
+        """Return the number of orders with the given status."""
+        business_user = get_object_or_404(
+            User, pk=business_user_id, profile__type=UserProfile.BUSINESS
+        )
+        count = Order.objects.filter(
+            business_user=business_user, status=self.order_status
+        ).count()
+        return Response({self.response_key: count})
+
+
+class OrderCountView(BusinessOrderCountView):
+    """Counts the orders in progress of a business user."""
+
+    order_status = Order.IN_PROGRESS
+    response_key = "order_count"
