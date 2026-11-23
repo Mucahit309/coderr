@@ -60,3 +60,24 @@ class OrderCreateSerializer(serializers.Serializer):
     def to_representation(self, instance):
         """Return the created order in the full order format."""
         return OrderSerializer(instance, context=self.context).data
+
+
+class OrderStatusSerializer(serializers.ModelSerializer):
+    """Updates only the status of an order."""
+
+    class Meta:
+        model = Order
+        fields = ["status"]
+
+    def validate(self, attrs):
+        """Ensure the request contains only a status."""
+        extra_fields = set(self.initial_data) - {"status"}
+        if extra_fields or "status" not in attrs:
+            raise serializers.ValidationError(
+                "Only the field 'status' can be updated."
+            )
+        return attrs
+
+    def to_representation(self, instance):
+        """Return the updated order in the full order format."""
+        return OrderSerializer(instance, context=self.context).data

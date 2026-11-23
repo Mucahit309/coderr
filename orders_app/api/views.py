@@ -1,13 +1,17 @@
 """Views for the order endpoints."""
 
 from django.db.models import Q
-from rest_framework.generics import ListCreateAPIView
+from rest_framework.generics import ListCreateAPIView, UpdateAPIView
 from rest_framework.permissions import IsAuthenticated
 
 from orders_app.models import Order
 
-from .permissions import IsCustomerUser
-from .serializers import OrderCreateSerializer, OrderSerializer
+from .permissions import IsCustomerUser, IsOrderBusinessUser
+from .serializers import (
+    OrderCreateSerializer,
+    OrderSerializer,
+    OrderStatusSerializer,
+)
 
 
 class OrderListCreateView(ListCreateAPIView):
@@ -31,3 +35,12 @@ class OrderListCreateView(ListCreateAPIView):
         return Order.objects.filter(
             Q(customer_user=user) | Q(business_user=user)
         )
+
+
+class OrderDetailView(UpdateAPIView):
+    """Lets the business user of an order update its status."""
+
+    queryset = Order.objects.all()
+    serializer_class = OrderStatusSerializer
+    permission_classes = [IsAuthenticated, IsOrderBusinessUser]
+    http_method_names = ["patch", "options"]

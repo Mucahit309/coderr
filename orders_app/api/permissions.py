@@ -17,3 +17,15 @@ class IsCustomerUser(BasePermission):
     def has_permission(self, request, view):
         """Check that the user is a customer."""
         return has_profile_type(request.user, UserProfile.CUSTOMER)
+
+
+class IsOrderBusinessUser(BasePermission):
+    """Allows only the business user of an order to change it."""
+
+    def has_permission(self, request, view):
+        """Check that the user is a business user."""
+        return has_profile_type(request.user, UserProfile.BUSINESS)
+
+    def has_object_permission(self, request, view, obj):
+        """Check that the user is the business user of this order."""
+        return obj.business_user == request.user
