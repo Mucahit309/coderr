@@ -1,23 +1,42 @@
 """Views for the review endpoints."""
 
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.filters import OrderingFilter
-from rest_framework.generics import ListAPIView
+from rest_framework.generics import ListCreateAPIView
 from rest_framework.permissions import IsAuthenticated
 
 from reviews_app.models import Review
 
 from .filters import ReviewFilter
+from .permissions import IsCustomerUser
 from .serializers import ReviewSerializer
 
 
-class ReviewListView(ListAPIView):
-    """Lists reviews with filtering and ordering."""
+class ReviewListCreateView(ListCreateAPIView):
+    """Lists reviews and lets customers create new ones."""
 
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
-    permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = ReviewFilter
     ordering_fields = ["updated_at", "rating"]
     ordering = ["-updated_at"]
+
+    def get_permissions(self):
+        """Allow customers to create, all logged in users to read."""
+        if self.request.method == "POST":
+            return [IsAuthenticated(), IsCustomerUser()]
+        return [IsAuthenticated()]
+
+    def perform_create(self, serializer):
+        """Save the review, only one per business user is allowed."""
+        reviewer = self.request.user
+        business_user = serializer.validated_data["business_user"]
+        if Review.objects.filter(
+            business_user=business_user, reviewer=reviewer
+        ).exists():
+            raise PermissionDenied(
+                "You have already reviewed this business user."
+            )
+        serializer.save(reviewer=reviewer)
