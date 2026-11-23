@@ -74,3 +74,10 @@ class OrderCountView(BusinessOrderCountView):
 
     order_status = Order.IN_PROGRESS
     response_key = "order_count"
+
+
+class CompletedOrderCountView(BusinessOrderCountView):
+    """Counts the completed orders of a business user."""
+
+    order_status = Order.COMPLETED
+    response_key = "completed_order_count"
