@@ -3,14 +3,14 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.filters import OrderingFilter
-from rest_framework.generics import ListCreateAPIView
+from rest_framework.generics import ListCreateAPIView, UpdateAPIView
 from rest_framework.permissions import IsAuthenticated
 
 from reviews_app.models import Review
 
 from .filters import ReviewFilter
-from .permissions import IsCustomerUser
-from .serializers import ReviewSerializer
+from .permissions import IsCustomerUser, IsReviewOwner
+from .serializers import ReviewSerializer, ReviewUpdateSerializer
 
 
 class ReviewListCreateView(ListCreateAPIView):
@@ -40,3 +40,12 @@ class ReviewListCreateView(ListCreateAPIView):
                 "You have already reviewed this business user."
             )
         serializer.save(reviewer=reviewer)
+
+
+class ReviewDetailView(UpdateAPIView):
+    """Lets the creator of a review update it."""
+
+    queryset = Review.objects.all()
+    serializer_class = ReviewUpdateSerializer
+    permission_classes = [IsAuthenticated, IsReviewOwner]
+    http_method_names = ["patch", "options"]

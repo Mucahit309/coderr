@@ -30,3 +30,15 @@ class ReviewSerializer(serializers.ModelSerializer):
                 "The reviewed user must be a business user."
             )
         return value
+
+
+class ReviewUpdateSerializer(serializers.ModelSerializer):
+    """Updates only rating and description of a review."""
+
+    class Meta:
+        model = Review
+        fields = ["rating", "description"]
+
+    def to_representation(self, instance):
+        """Return the updated review in the full review format."""
+        return ReviewSerializer(instance, context=self.context).data
