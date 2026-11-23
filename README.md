@@ -70,9 +70,13 @@ The project requires a test coverage of at least 95%.
 
 ```
 coderr/
-├── core/          # Project settings, main URL routing
-├── auth_app/      # Registration and login
-│   └── api/       # serializers, views, urls, permissions
+├── core/              # Project settings, central URL routing
+├── auth_app/          # Registration and login
+├── profile_app/       # User profiles (UserProfile model)
+├── offers_app/        # Offers and offer details
+├── orders_app/        # Orders
+├── reviews_app/       # Reviews
+├── base_info_app/     # Platform statistics
 ├── manage.py
 └── requirements.txt
 ```
